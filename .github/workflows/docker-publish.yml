@@ -1,0 +1,43 @@
+name: Publish Docker images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "AgroSmart.Api/**"
+      - "AgroSmart.Simulator/**"
+      - "docker-compose.yml"
+      - ".github/workflows/docker-publish.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: AgroSmart.Api/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/agrosmart-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/agrosmart-api:${{ github.sha }}
+
+      - name: Build and push Simulator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: AgroSmart.Simulator/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/agrosmart-simulator:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/agrosmart-simulator:${{ github.sha }}

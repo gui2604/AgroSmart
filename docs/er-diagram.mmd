@@ -1,0 +1,98 @@
+erDiagram
+    AGS_REGIONS ||--o{ AGS_DEVICES : "possui"
+    AGS_REGIONS ||--o{ AGS_ALERT_RULES : "escopo (opcional)"
+    AGS_REGIONS ||--o{ AGS_ALERTS : "localiza"
+    AGS_METRIC_TYPES ||--o{ AGS_MEASUREMENTS : "tipifica"
+    AGS_METRIC_TYPES ||--o{ AGS_ALERT_RULES : "monitora"
+    AGS_METRIC_TYPES ||--o{ AGS_ALERTS : "refere"
+    AGS_DEVICES ||--o{ AGS_SENSOR_READINGS : "coleta"
+    AGS_DEVICES ||--o{ AGS_ALERTS : "origina"
+    AGS_SENSOR_READINGS ||--o{ AGS_MEASUREMENTS : "contém"
+    AGS_MEASUREMENTS ||--o{ AGS_ALERTS : "dispara"
+    AGS_ALERT_RULES ||--o{ AGS_ALERTS : "gera"
+    AGS_USERS ||--o{ AGS_ALERTS : "reconhece"
+
+    AGS_REGIONS {
+        int Id PK
+        string Code UK
+        string Name
+        string ModuleType
+        string FieldLocation
+        string Description
+        timestamp CreatedAt
+    }
+
+    AGS_METRIC_TYPES {
+        int Id PK
+        string Code UK
+        string Name
+        string Unit
+        string Description
+        double NominalMin
+        double NominalMax
+    }
+
+    AGS_DEVICES {
+        int Id PK
+        string Identifier UK
+        string Name
+        string DeviceType
+        string Status
+        string FirmwareVersion
+        timestamp InstalledAt
+        timestamp LastSeenAt
+        int RegionId FK
+    }
+
+    AGS_SENSOR_READINGS {
+        int Id PK
+        timestamp CollectedAt
+        timestamp ReceivedAt
+        string SourceFile
+        int DeviceId FK
+    }
+
+    AGS_MEASUREMENTS {
+        int Id PK
+        double Value
+        int SensorReadingId FK
+        int MetricTypeId FK
+    }
+
+    AGS_ALERT_RULES {
+        int Id PK
+        string Name
+        string Description
+        int MetricTypeId FK
+        int RegionId FK
+        double MinThreshold
+        double MaxThreshold
+        string Severity
+        number IsActive
+        timestamp CreatedAt
+    }
+
+    AGS_ALERTS {
+        int Id PK
+        string Message
+        string Severity
+        string Status
+        double TriggeredValue
+        timestamp CreatedAt
+        timestamp AcknowledgedAt
+        timestamp ResolvedAt
+        int AlertRuleId FK
+        int MetricTypeId FK
+        int MeasurementId FK
+        int DeviceId FK
+        int RegionId FK
+        int AcknowledgedByUserId FK
+    }
+
+    AGS_USERS {
+        int Id PK
+        string Email UK
+        string PasswordHash
+        string Role
+        timestamp CreatedAt
+    }

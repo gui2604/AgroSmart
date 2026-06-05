@@ -1,0 +1,129 @@
+{
+  "info": {
+    "name": "AgroSmart API",
+    "description": "Coleção de endpoints da AgroSmart API. Guia de uso: docs/POSTMAN.md no repositório. Login demo: operador@agrosmart.com.br / agrosmart123 (grava token automaticamente).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"operador@agrosmart.com.br\",\n  \"password\": \"agrosmart123\",\n  \"role\": \"Operator\"\n}" }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('token', json.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"operador@agrosmart.com.br\",\n  \"password\": \"agrosmart123\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Regions",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/regions" } },
+        { "name": "Get by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/regions/1" } },
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/regions", "body": { "mode": "raw", "raw": "{\n  \"code\": \"BAY-A1\",\n  \"name\": \"Hydroponic Bay A1\",\n  \"moduleType\": \"Hydroponic\",\n  \"orbitalSegment\": \"Deck 3 / Node 2\",\n  \"description\": \"Baia hidropônica de folhosas.\"\n}" } } },
+        { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/regions/1", "body": { "mode": "raw", "raw": "{\n  \"name\": \"Hydroponic Bay A1 (rev)\",\n  \"moduleType\": \"Hydroponic\",\n  \"orbitalSegment\": \"Deck 3 / Node 2\",\n  \"description\": \"Atualizada.\"\n}" } } },
+        { "name": "Delete", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/v1/regions/1" } }
+      ]
+    },
+    {
+      "name": "Devices",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/devices" } },
+        { "name": "Get by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/devices/1" } },
+        { "name": "By region", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/devices/by-region/1" } },
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/devices", "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"SENSOR-A1-01\",\n  \"name\": \"MultiSensor A1-01\",\n  \"deviceType\": \"MultiSensor\",\n  \"firmwareVersion\": \"1.4.2\",\n  \"status\": \"Active\",\n  \"regionId\": 1\n}" } } },
+        { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/devices/1", "body": { "mode": "raw", "raw": "{\n  \"name\": \"MultiSensor A1-01\",\n  \"deviceType\": \"MultiSensor\",\n  \"firmwareVersion\": \"1.5.0\",\n  \"status\": \"Maintenance\",\n  \"regionId\": 1\n}" } } },
+        { "name": "Delete", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/v1/devices/1" } }
+      ]
+    },
+    {
+      "name": "Metric Types",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/metric-types" } },
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/metric-types", "body": { "mode": "raw", "raw": "{\n  \"code\": \"VPD\",\n  \"name\": \"Vapor Pressure Deficit\",\n  \"unit\": \"kPa\",\n  \"nominalMin\": 0.4,\n  \"nominalMax\": 1.2\n}" } } }
+      ]
+    },
+    {
+      "name": "Alert Rules",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/alert-rules" } },
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/alert-rules", "body": { "mode": "raw", "raw": "{\n  \"name\": \"CO2 alto (global)\",\n  \"description\": \"CO2 acima do ideal.\",\n  \"metricTypeId\": 3,\n  \"regionId\": null,\n  \"maxThreshold\": 1200,\n  \"severity\": \"Warning\",\n  \"isActive\": true\n}" } } },
+        { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/alert-rules/1", "body": { "mode": "raw", "raw": "{\n  \"name\": \"CO2 alto (global)\",\n  \"metricTypeId\": 3,\n  \"regionId\": null,\n  \"maxThreshold\": 1100,\n  \"severity\": \"Critical\",\n  \"isActive\": true\n}" } } },
+        { "name": "Delete", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/v1/alert-rules/1" } }
+      ]
+    },
+    {
+      "name": "Ingestion",
+      "item": [
+        { "name": "Single reading", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/ingestion/readings", "body": { "mode": "raw", "raw": "{\n  \"deviceIdentifier\": \"SENSOR-A1-02\",\n  \"collectedAt\": \"2026-06-04T12:05:00Z\",\n  \"measurements\": [\n    { \"metricCode\": \"CO2\", \"value\": 1850 },\n    { \"metricCode\": \"O2\", \"value\": 17.8 }\n  ]\n}" } } },
+        { "name": "Batch", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/ingestion/readings/batch", "body": { "mode": "raw", "raw": "[\n  {\n    \"deviceIdentifier\": \"SENSOR-B2-01\",\n    \"measurements\": [ { \"metricCode\": \"CO2\", \"value\": 1320 } ]\n  }\n]" } } },
+        { "name": "Upload file", "request": { "method": "POST", "url": "{{baseUrl}}/api/v1/ingestion/upload", "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] } } }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/alerts?status=Open" } },
+        { "name": "Get by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/alerts/1" } },
+        { "name": "Create manual", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/alerts", "body": { "mode": "raw", "raw": "{\n  \"message\": \"Inspeção manual: folhas com sinais de estresse hídrico.\",\n  \"deviceId\": 1,\n  \"metricTypeId\": 2,\n  \"triggeredValue\": 41.0,\n  \"severity\": \"Warning\"\n}" } } },
+        { "name": "Update status", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/v1/alerts/1/status", "body": { "mode": "raw", "raw": "{\n  \"status\": \"Acknowledged\"\n}" } } },
+        { "name": "Delete", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/v1/alerts/1" } }
+      ]
+    },
+    {
+      "name": "Readings",
+      "item": [
+        { "name": "Get by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/readings/1" } },
+        { "name": "By device", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/readings/by-device/1?take=20" } }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        { "name": "Region health (all)", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/reports/region-health" } },
+        { "name": "Region health (one)", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/reports/region-health/1" } },
+        { "name": "Alerts summary", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/reports/alerts-summary" } }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Basic", "request": { "method": "GET", "url": "{{baseUrl}}/api/healthcheck" } },
+        { "name": "Full", "request": { "method": "GET", "url": "{{baseUrl}}/api/healthcheck/full" } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "deviceIdentifier": "SENSOR-T1-01",
+  "collectedAt": "2026-06-04T12:05:00Z",
+  "measurements": [
+    { "metricCode": "TEMPERATURE", "value": 35.2 },
+    { "metricCode": "SOIL_MOISTURE", "value": 24.0 },
+    { "metricCode": "HUMIDITY", "value": 33.0 },
+    { "metricCode": "PH", "value": 7.2 }
+  ]
+}

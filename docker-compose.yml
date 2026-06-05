@@ -1,0 +1,96 @@
+name: agrosmart
+
+services:
+  # ---------------------------------------------------------------------------
+  # Apache Kafka (KRaft mode - sem Zookeeper) - backbone do pipeline de dados
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: agrosmart-kafka
+    ports:
+      - "9092:9092"   # listener interno (containers)
+      - "29092:29092" # listener externo (host: localhost:29092)
+    environment:
+      KAFKA_NODE_ID: "0"
+      KAFKA_PROCESS_ROLES: "controller,broker"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "0@kafka:9093"
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29092"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Kafka UI - visualização do fluxo (tópicos, mensagens, consumer groups)
+  # ---------------------------------------------------------------------------
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: agrosmart-kafka-ui
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "agrosmart"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+      DYNAMIC_CONFIG_ENABLED: "true"
+    depends_on:
+      - kafka
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # API AgroSmart (.NET 9) - consome o stream do Kafka e persiste no Oracle FIAP
+  # ---------------------------------------------------------------------------
+  api:
+    image: ${DOCKERHUB_USERNAME:-agrosmart}/agrosmart-api:latest
+    build:
+      context: .
+      dockerfile: AgroSmart.Api/Dockerfile
+    container_name: agrosmart-api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__OracleDb: "User Id=${ORACLE_USER:-RM97674};Password=${ORACLE_PASSWORD};Data Source=oracle.fiap.com.br:1521/ORCL"
+      Jwt__Key: ${JWT_KEY:-agrosmart-super-secret-key-1234567890-ABCdef!!!###}
+      Jwt__Issuer: agrosmart
+      Jwt__Audience: agrosmart-clients
+      Kafka__Enabled: "true"
+      Kafka__BootstrapServers: "kafka:9092"
+      Kafka__Topic: "agrosmart.sensor-readings"
+      Kafka__GroupId: "agrosmart-api"
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Simulador de telemetria - producer que alimenta o pipeline continuamente
+  # ---------------------------------------------------------------------------
+  simulator:
+    image: ${DOCKERHUB_USERNAME:-agrosmart}/agrosmart-simulator:latest
+    build:
+      context: .
+      dockerfile: AgroSmart.Simulator/Dockerfile
+    container_name: agrosmart-simulator
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      KAFKA_TOPIC: "agrosmart.sensor-readings"
+      SIMULATOR_INTERVAL_MS: "3000"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped

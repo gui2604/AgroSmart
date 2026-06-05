@@ -1,0 +1,21 @@
+## .NET build output
+bin/
+obj/
+*.user
+
+## Rider / VS
+.vs/
+.idea/
+
+## Logs / local
+*.log
+Logs/
+logs/
+test-logs.txt
+
+## Environment overrides (mantenha segredos fora do versionamento)
+appsettings.*.local.json
+.env
+
+## Docker
+.docker/

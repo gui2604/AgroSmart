@@ -1,0 +1,15 @@
+**/.git
+**/.gitignore
+**/.vs
+**/.idea
+**/bin
+**/obj
+**/*.user
+**/*.log
+**/Logs
+**/.env
+**/appsettings.*.local.json
+**/SampleData
+README.md
+docs/
+db/
