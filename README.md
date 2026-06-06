@@ -1,27 +1,31 @@
 # AgroSmart
 
-API RESTful em **ASP.NET Core 9 (C#)** para **monitoramento ambiental e agricultura
-de precisão** no campo (lavouras, pastagens e estufas). Sensores de campo coletam
-métricas ambientais (temperatura, umidade do ar, umidade do solo, pH, luminosidade,
-etc.) e transmitem leituras que são ingeridas em **tempo real via Apache Kafka**. O
-servidor persiste as medições no **Oracle**, avalia **regras de alerta** configuráveis
-e gera relatórios de salubridade por talhão.
+Plataforma de **monitoramento ambiental e agricultura de precisão** para lavouras,
+pastagens e estufas. A solução ingere telemetria de sensores de campo em **tempo
+real** via **Apache Kafka**, persiste medições em **Oracle**, avalia **regras de
+alerta** configuráveis e expõe operações e relatórios por uma **API REST** em
+**ASP.NET Core 9**.
 
-> Evolução terrestre do projeto *Orbital Greenhouse*. Esta entrega corresponde à
-> **Fase 4** do AgroSmart: **pipeline de dados em streaming**, **containerização com
-> Docker** e **modelo de negócio (Business Model Canvas)**.
+Evolução terrestre do ecossistema *Orbital Greenhouse*, com foco em pipeline de
+streaming, containerização e operação em ambiente de produção simulado.
 
 ---
 
-## Entregáveis da Fase 4
+## Visão geral
 
-| # | Requisito | Onde está |
-|---|-----------|-----------|
-| 1 | **Pipeline de dados com streaming** (Kafka) | `AgroSmart.Simulator/` (producer) + `AgroSmart.Api/Messaging/` (consumer) + [`docs/PIPELINE.md`](docs/PIPELINE.md) |
-| 2 | **Containerização** (Docker) | [`docker-compose.yml`](docker-compose.yml) + `*/Dockerfile` |
-| 3 | **Modelo de negócio (Canvas)** | [`docs/BUSINESS_MODEL_CANVAS.md`](docs/BUSINESS_MODEL_CANVAS.md) |
+O AgroSmart combina três capacidades principais:
 
-> Os vídeos pedidos no enunciado serão gravados na finalização e não fazem parte deste repositório.
+| Capacidade | Descrição |
+|------------|-----------|
+| **Pipeline em streaming** | Leituras de sensores trafegam por Kafka; a API consome o fluxo, persiste e dispara alertas sem acoplamento HTTP entre produtor e consumidor. |
+| **Containerização** | Kafka, interface de observabilidade, API e simulador de telemetria sobem integrados via Docker Compose. |
+| **Gestão operacional** | REST/Swagger para talhões, dispositivos, regras, alertas, leituras e relatórios; autenticação JWT. |
+
+Documentação complementar:
+
+- Pipeline Kafka e arquitetura Docker — [`docs/PIPELINE.md`](docs/PIPELINE.md)
+- Modelo de negócio (Business Model Canvas) — [`docs/BUSINESS_MODEL_CANVAS.md`](docs/BUSINESS_MODEL_CANVAS.md)
+- Diagrama ER e coleção Postman — [`docs/ER_DIAGRAM.md`](docs/ER_DIAGRAM.md), [`docs/POSTMAN.md`](docs/POSTMAN.md)
 
 ---
 
@@ -32,201 +36,225 @@ Simulator ──(Kafka)──> API Consumer ──> IngestionService ──> Ora
  (producer)   topic        (BackgroundService)   (regras de alerta)     +  REST/Swagger
 ```
 
-- **Camadas:** `Controller → Service → Repository → DbContext (EF Core / Oracle)`.
-- **Streaming:** o `AgroSmart.Simulator` publica leituras no tópico
-  `agrosmart.sensor-readings`; o `SensorReadingConsumer` (na API) consome e ingere.
-- **Detalhe completo do pipeline e diagramas:** [`docs/PIPELINE.md`](docs/PIPELINE.md).
+- **Camadas da API:** `Controller → Service → Repository → DbContext` (EF Core / Oracle).
+- **Producer:** `AgroSmart.Simulator` publica JSON no tópico `agrosmart.sensor-readings` (~3 s entre leituras).
+- **Consumer:** `SensorReadingConsumer` (`BackgroundService`) lê o tópico, delega à `IngestionService` e registra alertas quando limites são violados.
+- **Observabilidade:** Kafka UI expõe tópicos, mensagens e consumer groups.
 
 ### Estrutura do repositório
 
 ```
 AgroSmart/
 ├── AgroSmart.sln
-├── AgroSmart.Api/                # API .NET 9 (controllers, services, repos, EF/Oracle)
-│   ├── Messaging/                # KafkaSettings + SensorReadingConsumer (consumer do pipeline)
-│   ├── Controllers/ Services/ Repositories/ Data/ Models/ Dtos/ Migrations/ ...
+├── AgroSmart.Api/                # API .NET 9 (REST, EF/Oracle, consumer Kafka)
+│   ├── Messaging/                # KafkaSettings, SensorReadingConsumer
+│   ├── Controllers/ Services/ Repositories/ Data/ Models/ Dtos/ Migrations/
 │   └── Dockerfile
-├── AgroSmart.Simulator/          # Producer Kafka (telemetria simulada) + Dockerfile
-├── AgroSmart.Api.Tests/          # Testes unitários (xUnit) — cenários CT-01…CT-06
-├── db/                           # Scripts SQL (DDL, seed, consultas) — tabelas AGS_*
-├── docs/                         # PIPELINE.md, BUSINESS_MODEL_CANVAS.md, ER, Postman
-├── docker-compose.yml            # kafka + kafka-ui + api + simulator
-└── .github/workflows/            # Publicação das imagens no Docker Hub
+├── AgroSmart.Simulator/          # Producer Kafka (telemetria simulada)
+├── AgroSmart.Api.Tests/          # Testes unitários (xUnit)
+├── db/                           # Scripts SQL (DDL, seed, reset, consultas)
+├── docs/                         # Pipeline, Canvas, ER, Postman
+├── docker-compose.yml            # kafka, kafka-ui, api, simulator
+└── .github/workflows/            # Publicação de imagens no Docker Hub
 ```
 
 ---
 
-## Segurança e autenticação
+## Stack tecnológica
 
-- **Login com senha criptografada (hash):** senhas são armazenadas como **hash**
-  (ASP.NET Core `PasswordHasher`, PBKDF2 com salt) — nunca em texto puro.
-- **Autenticação JWT:** endpoints protegidos exigem `Authorization: Bearer {token}`.
-- **Validação de entrada:** DTOs com Data Annotations (`[Required]`, `[EmailAddress]`,
-  `MinLength`, `MaxLength`).
-- **Proteção contra SQL Injection:** acesso a dados via **EF Core** (consultas
-  parametrizadas), sem concatenação de SQL.
-
----
-
-## Tecnologias
-
-- .NET 9 / ASP.NET Core Web API
-- Entity Framework Core 9 + **Oracle** (`Oracle.EntityFrameworkCore`)
-- **Apache Kafka** (`Confluent.Kafka`) — pipeline de dados em streaming
-- Autenticação **JWT** (`Microsoft.AspNetCore.Authentication.JwtBearer`)
-- **Swagger / OpenAPI** (Swashbuckle)
-- **Docker** + **Docker Compose** + **Docker Hub**
+| Camada | Tecnologia |
+|--------|------------|
+| API | .NET 9, ASP.NET Core Web API, Swagger/OpenAPI |
+| Persistência | Entity Framework Core 9, Oracle (`Oracle.EntityFrameworkCore`) |
+| Streaming | Apache Kafka 3.7 (KRaft), `Confluent.Kafka` |
+| Segurança | JWT (`Microsoft.AspNetCore.Authentication.JwtBearer`), hash de senha (PBKDF2) |
+| Infraestrutura | Docker, Docker Compose, GitHub Actions |
 
 ---
 
-## Modelo de dados (Oracle, prefixo `AGS_`)
+## Modelo de dados
+
+Tabelas Oracle com prefixo `AGS_`, projetadas para coexistir com outros projetos no
+mesmo schema institucional.
 
 | Tabela | Descrição |
 |--------|-----------|
-| `AGS_REGIONS` | Talhões / áreas de cultivo |
-| `AGS_METRIC_TYPES` | Catálogo de métricas ambientais (unidade + faixa nominal) |
-| `AGS_DEVICES` | Sensores de campo vinculados a um talhão |
-| `AGS_SENSOR_READINGS` | Evento de coleta (uma leitura) |
-| `AGS_MEASUREMENTS` | Cada valor de métrica de uma leitura |
-| `AGS_ALERT_RULES` | Limiares configuráveis (min/max) por métrica/talhão |
-| `AGS_ALERTS` | Alertas gerados (automáticos ou manuais) com ciclo de vida |
-| `AGS_USERS` | Operadores autenticados via JWT |
+| `AGS_REGIONS` | Talhões e áreas de cultivo |
+| `AGS_METRIC_TYPES` | Catálogo de métricas (unidade e faixa nominal) |
+| `AGS_DEVICES` | Sensores vinculados a um talhão |
+| `AGS_SENSOR_READINGS` | Evento de coleta |
+| `AGS_MEASUREMENTS` | Valores individuais de cada leitura |
+| `AGS_ALERT_RULES` | Limiares configuráveis (min/max) |
+| `AGS_ALERTS` | Alertas automáticos ou manuais |
+| `AGS_USERS` | Operadores autenticados |
 
-Scripts em [`db/`](db/). Em **Development** a API aplica as **migrations do EF** na
-subida (`Database.Migrate()`), cria o catálogo de métricas e **semeia talhões,
-sensores e regras de alerta** de demonstração (necessários para o pipeline).
-
-> O banco Oracle é o **mesmo da FIAP** (`oracle.fiap.com.br:1521/ORCL`, usuário
-> `RM97674`). As tabelas usam prefixo `AGS_`, então coexistem com outros projetos no
-> mesmo schema.
+O schema pode ser aplicado por **migrations EF Core** (ambiente Development) ou pelos
+scripts em [`db/`](db/). Constraints e índices usam prefixo `AGS_` para evitar
+conflito de nomes no Oracle compartilhado.
 
 ---
 
-## Configuração do banco Oracle
+## Pipeline Kafka
 
-1. Crie o arquivo local (não versionado) com sua senha:
+| Elemento | Valor / papel |
+|----------|----------------|
+| Tópico | `agrosmart.sensor-readings` |
+| Consumer group | `agrosmart-api` |
+| Broker (Docker) | `kafka:9092` (rede interna) · `localhost:29092` (host) |
+| Dispositivos simulados | `SENSOR-T1-01`, `SENSOR-T2-01`, `SENSOR-E1-01` |
+
+Payload típico de uma mensagem:
 
 ```json
-// AgroSmart.Api/appsettings.Development.local.json
 {
-  "ConnectionStrings": {
-    "OracleDb": "User Id=RM97674;Password=SUA_SENHA;Data Source=oracle.fiap.com.br:1521/ORCL"
-  }
+  "deviceIdentifier": "SENSOR-T1-01",
+  "collectedAt": "2026-06-05T18:30:00Z",
+  "measurements": [
+    { "metricCode": "TEMPERATURE", "value": 35.2 },
+    { "metricCode": "SOIL_MOISTURE", "value": 24.0 }
+  ]
 }
 ```
 
-Em Docker, a senha vem do arquivo `.env` (veja abaixo).
+Detalhes de brokers, partições, offsets e containerização: [`docs/PIPELINE.md`](docs/PIPELINE.md).
 
 ---
 
-## Como executar — Docker (recomendado: sobe todo o pipeline)
+## Segurança
 
-Pré-requisito: **Docker Desktop** em execução.
+- Senhas armazenadas como **hash** (nunca em texto puro).
+- Endpoints protegidos exigem `Authorization: Bearer {token}`.
+- Validação de entrada via Data Annotations nos DTOs.
+- Acesso a dados exclusivamente por **EF Core** (consultas parametrizadas).
+
+---
+
+## Configuração
+
+### Banco Oracle
+
+| Variável / arquivo | Uso |
+|--------------------|-----|
+| `ConnectionStrings:OracleDb` | Connection string completa |
+| `appsettings.Development.local.json` | Override local (não versionado) |
+| `.env` → `ORACLE_USER`, `ORACLE_PASSWORD` | Credenciais no Docker Compose |
+
+Exemplo de connection string:
+
+```
+User Id=RM97674;Password=***;Data Source=oracle.fiap.com.br:1521/ORCL
+```
+
+### Kafka (API)
+
+| Chave | Padrão | Descrição |
+|-------|--------|-----------|
+| `Kafka:Enabled` | `false` (local) / `true` (Docker) | Ativa o `SensorReadingConsumer` |
+| `Kafka:BootstrapServers` | `localhost:9092` / `kafka:9092` | Endereço do broker |
+| `Kafka:Topic` | `agrosmart.sensor-readings` | Tópico de leituras |
+| `Kafka:GroupId` | `agrosmart-api` | Consumer group |
+
+### Simulador
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Broker |
+| `KAFKA_TOPIC` | `agrosmart.sensor-readings` | Tópico de destino |
+| `SIMULATOR_INTERVAL_MS` | `3000` | Intervalo entre publicações |
+
+### Docker Hub (opcional)
+
+| Variável / secret | Descrição |
+|-------------------|-----------|
+| `DOCKERHUB_USERNAME` (`.env`) | Prefixo das imagens locais |
+| `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (GitHub Actions) | Publicação automática no push para `main` |
+
+---
+
+## Execução
+
+### Docker Compose (ambiente completo)
+
+Sobe Kafka, Kafka UI, API e simulador. Requer Docker e arquivo `.env` derivado de
+[`.env.example`](.env.example).
 
 ```bash
-# 1. Crie o .env a partir do exemplo e informe ORACLE_PASSWORD (e DOCKERHUB_USERNAME)
-copy .env.example .env
-
-# 2. Suba tudo: Kafka + Kafka UI + API + Simulador
 docker compose up --build -d
-
-# 3. Acesse:
-#    API/Swagger  -> http://localhost:8080/swagger
-#    Kafka UI     -> http://localhost:8081   (tópico agrosmart.sensor-readings)
-
-# 4. Acompanhe o fluxo em tempo real
-docker compose logs -f simulator   # produtor publicando leituras
-docker compose logs -f api         # consumer ingerindo + alertas gerados
-
-# Encerrar
-docker compose down
 ```
 
-O **simulador** publica uma leitura a cada ~3s; a **API** consome do Kafka, persiste
-no Oracle e dispara **alertas** quando uma medição viola uma regra.
+| Serviço | URL |
+|---------|-----|
+| API / Swagger | http://localhost:8080/swagger |
+| Kafka UI | http://localhost:8081 |
 
-### Publicar no Docker Hub
+Logs do pipeline:
 
 ```bash
-# login
-docker login -u SEU_USUARIO
-
-# build + tag + push (ou deixe o GitHub Actions fazer no push para main)
-docker compose build
-docker tag agrosmart/agrosmart-api:latest SEU_USUARIO/agrosmart-api:latest
-docker tag agrosmart/agrosmart-simulator:latest SEU_USUARIO/agrosmart-simulator:latest
-docker push SEU_USUARIO/agrosmart-api:latest
-docker push SEU_USUARIO/agrosmart-simulator:latest
+docker compose logs -f simulator
+docker compose logs -f api
 ```
 
-> Definindo `DOCKERHUB_USERNAME` no `.env`, o `docker compose build` já nomeia as
-> imagens como `SEU_USUARIO/agrosmart-api` e `SEU_USUARIO/agrosmart-simulator`.
-> O workflow [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml)
-> publica automaticamente usando os secrets `DOCKERHUB_USERNAME` e `DOCKERHUB_TOKEN`.
+### Execução local (sem Compose completo)
+
+A API pode rodar com `dotnet run --project AgroSmart.Api`. O consumer Kafka permanece
+desabilitado por padrão (`Kafka:Enabled=false` em `appsettings.json`). Para ativar o
+streaming localmente, é necessário um broker acessível e `Kafka:Enabled=true`.
+
+O simulador publica no tópico configurado via `dotnet run --project AgroSmart.Simulator`.
+
+### Reset do schema Oracle
+
+O script [`db/00_drop_ags_schema.sql`](db/00_drop_ags_schema.sql) remove tabelas `AGS_*`
+e o histórico EF. Após executá-lo, a API em Development recria o schema e os dados
+de demonstração na próxima inicialização.
 
 ---
 
-## Como executar — local (sem Docker)
+## API REST
 
-```bash
-# 1. Configurar a senha Oracle (appsettings.Development.local.json — ver acima)
-# 2. Rodar a API (migra o schema e semeia dados de demonstração)
-dotnet run --project AgroSmart.Api      # https://localhost:7118/swagger
-
-# 3. (Opcional) rodar o simulador apontando para um Kafka local
-#    Suba só o Kafka via Docker: docker compose up -d kafka
-#    e habilite o consumer da API com Kafka__Enabled=true (env) ou appsettings.
-dotnet run --project AgroSmart.Simulator
-```
-
-Por padrão o consumer Kafka da API fica **desabilitado** fora do Docker
-(`Kafka:Enabled=false` em `appsettings.json`), para permitir `dotnet run` sem broker.
-
----
-
-## Credenciais de teste (Swagger / Postman)
-
-Em **Development**, um operador de demonstração é criado automaticamente:
+### Autenticação (ambiente Development)
 
 | Campo | Valor |
 |-------|-------|
-| **E-mail** | `operador@agrosmart.com.br` |
-| **Senha** | `agrosmart123` |
-| **Papel** | `Operator` |
+| E-mail | `operador@agrosmart.com.br` |
+| Senha | `agrosmart123` |
+| Papel | `Operator` |
 
-Fluxo no Swagger: **POST /api/v1/auth/login** → copie o `token` → botão **Authorize**.
+O operador e os sensores de demonstração são criados automaticamente pelo seeder em
+Development. Login: `POST /api/v1/auth/login`.
 
-```json
-{ "email": "operador@agrosmart.com.br", "password": "agrosmart123" }
-```
-
----
-
-## Endpoints principais
+### Recursos principais
 
 | Recurso | Rota base |
 |---------|-----------|
-| Auth (público) | `POST /api/v1/auth/register` · `POST /api/v1/auth/login` |
-| Regions (talhões) | `GET/POST/PUT/DELETE /api/v1/regions` |
-| Devices (sensores) | `GET/POST/PUT/DELETE /api/v1/devices` |
+| Auth | `POST /api/v1/auth/register` · `POST /api/v1/auth/login` |
+| Regions | `GET/POST/PUT/DELETE /api/v1/regions` |
+| Devices | `GET/POST/PUT/DELETE /api/v1/devices` |
 | Metric Types | `GET/POST/PUT/DELETE /api/v1/metric-types` |
 | Alert Rules | `GET/POST/PUT/DELETE /api/v1/alert-rules` |
 | Ingestion (HTTP) | `POST /api/v1/ingestion/readings` · `/readings/batch` · `/upload` |
-| Alerts | `GET /api/v1/alerts` · `PUT /{id}/status` · ... |
+| Alerts | `GET /api/v1/alerts` · `PUT /{id}/status` |
 | Readings | `GET /api/v1/readings/{id}` · `/by-device/{deviceId}` |
 | Reports | `GET /api/v1/reports/region-health` · `/alerts-summary` |
 | Health | `GET /api/healthcheck` · `/api/healthcheck/full` |
 
-> Além da ingestão por HTTP (acima), a ingestão **em tempo real** ocorre via Kafka
-> (sem chamada HTTP), processada pelo `SensorReadingConsumer`.
+A ingestão em tempo real via Kafka é processada pelo `SensorReadingConsumer` em
+paralelo aos endpoints HTTP de ingestão.
 
 ---
 
-## Testes unitários (xUnit)
+## Testes
 
 ```bash
 dotnet test
 ```
 
-6 cenários (CT-01…CT-06) cobrindo avaliação de limiares de alerta, unicidade de
-talhão, integridade referencial e login inválido. Não exigem Oracle (usam mocks/lógica pura).
+A suíte `AgroSmart.Api.Tests` cobre avaliação de limiares, unicidade de talhão,
+integridade referencial e cenários de autenticação, sem dependência de Oracle
+(mocks e lógica isolada).
+
+---
+
+## Licença
+
+MIT — ver [`LICENSE`](LICENSE).
