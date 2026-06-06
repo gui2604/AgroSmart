@@ -79,7 +79,7 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("BINARY_DOUBLE");
 
                     b.HasKey("Id")
-                        .HasName("PK_ALERT");
+                        .HasName("AGS_PK_ALERT");
 
                     b.HasIndex("AcknowledgedByUserId");
 
@@ -94,7 +94,7 @@ namespace AgroSmart.Api.Migrations
                     b.HasIndex("RegionId");
 
                     b.HasIndex("Status")
-                        .HasDatabaseName("IX_ALERT_STATUS");
+                        .HasDatabaseName("AGS_IX_ALERT_STATUS");
 
                     b.ToTable("AGS_ALERTS", (string)null);
                 });
@@ -140,7 +140,7 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("NVARCHAR2(20)");
 
                     b.HasKey("Id")
-                        .HasName("PK_ALERT_RULE");
+                        .HasName("AGS_PK_ALERT_RULE");
 
                     b.HasIndex("MetricTypeId");
 
@@ -190,11 +190,11 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("NVARCHAR2(20)");
 
                     b.HasKey("Id")
-                        .HasName("PK_DEVICE");
+                        .HasName("AGS_PK_DEVICE");
 
                     b.HasIndex("Identifier")
                         .IsUnique()
-                        .HasDatabaseName("UX_DEVICE_IDENT");
+                        .HasDatabaseName("AGS_UX_DEVICE_IDENT");
 
                     b.HasIndex("RegionId");
 
@@ -219,13 +219,13 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("BINARY_DOUBLE");
 
                     b.HasKey("Id")
-                        .HasName("PK_MEASUREMENT");
+                        .HasName("AGS_PK_MEASUREMENT");
 
                     b.HasIndex("MetricTypeId")
-                        .HasDatabaseName("IX_MEAS_METRIC");
+                        .HasDatabaseName("AGS_IX_MEAS_METRIC");
 
                     b.HasIndex("SensorReadingId")
-                        .HasDatabaseName("IX_MEAS_READING");
+                        .HasDatabaseName("AGS_IX_MEAS_READING");
 
                     b.ToTable("AGS_MEASUREMENTS", (string)null);
                 });
@@ -264,11 +264,11 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("NVARCHAR2(20)");
 
                     b.HasKey("Id")
-                        .HasName("PK_METRIC_TYPE");
+                        .HasName("AGS_PK_METRIC");
 
                     b.HasIndex("Code")
                         .IsUnique()
-                        .HasDatabaseName("UX_METRIC_CODE");
+                        .HasDatabaseName("AGS_UX_METRIC_CODE");
 
                     b.ToTable("AGS_METRIC_TYPES", (string)null);
 
@@ -389,11 +389,11 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("NVARCHAR2(120)");
 
                     b.HasKey("Id")
-                        .HasName("PK_REGION");
+                        .HasName("AGS_PK_REGION");
 
                     b.HasIndex("Code")
                         .IsUnique()
-                        .HasDatabaseName("UX_REGION_CODE");
+                        .HasDatabaseName("AGS_UX_REGION_CODE");
 
                     b.ToTable("AGS_REGIONS", (string)null);
                 });
@@ -420,10 +420,10 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("NVARCHAR2(150)");
 
                     b.HasKey("Id")
-                        .HasName("PK_READING");
+                        .HasName("AGS_PK_READING");
 
                     b.HasIndex("DeviceId")
-                        .HasDatabaseName("IX_READING_DEVICE");
+                        .HasDatabaseName("AGS_IX_READING_DEVICE");
 
                     b.ToTable("AGS_SENSOR_READINGS", (string)null);
                 });
@@ -455,11 +455,11 @@ namespace AgroSmart.Api.Migrations
                         .HasColumnType("NVARCHAR2(30)");
 
                     b.HasKey("Id")
-                        .HasName("PK_USER");
+                        .HasName("AGS_PK_USER");
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("UX_USER_EMAIL");
+                        .HasDatabaseName("AGS_UX_USER_EMAIL");
 
                     b.ToTable("AGS_USERS", (string)null);
                 });
@@ -470,40 +470,40 @@ namespace AgroSmart.Api.Migrations
                         .WithMany("AcknowledgedAlerts")
                         .HasForeignKey("AcknowledgedByUserId")
                         .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("FK_ALERT_USER");
+                        .HasConstraintName("AGS_FK_ALERT_USER");
 
                     b.HasOne("AgroSmart.Api.Models.AlertRule", "AlertRule")
                         .WithMany("Alerts")
                         .HasForeignKey("AlertRuleId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_ALERT_RULE");
+                        .HasConstraintName("AGS_FK_ALERT_RULE");
 
                     b.HasOne("AgroSmart.Api.Models.Device", "Device")
                         .WithMany("Alerts")
                         .HasForeignKey("DeviceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_ALERT_DEVICE");
+                        .HasConstraintName("AGS_FK_ALERT_DEVICE");
 
                     b.HasOne("AgroSmart.Api.Models.Measurement", "Measurement")
                         .WithMany("Alerts")
                         .HasForeignKey("MeasurementId")
                         .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("FK_ALERT_MEAS");
+                        .HasConstraintName("AGS_FK_ALERT_MEAS");
 
                     b.HasOne("AgroSmart.Api.Models.MetricType", "MetricType")
                         .WithMany()
                         .HasForeignKey("MetricTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_ALERT_METRIC");
+                        .HasConstraintName("AGS_FK_ALERT_METRIC");
 
                     b.HasOne("AgroSmart.Api.Models.Region", "Region")
                         .WithMany("Alerts")
                         .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_ALERT_REGION");
+                        .HasConstraintName("AGS_FK_ALERT_REGION");
 
                     b.Navigation("AcknowledgedByUser");
 
@@ -525,13 +525,13 @@ namespace AgroSmart.Api.Migrations
                         .HasForeignKey("MetricTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_RULE_METRIC");
+                        .HasConstraintName("AGS_FK_RULE_METRIC");
 
                     b.HasOne("AgroSmart.Api.Models.Region", "Region")
                         .WithMany("AlertRules")
                         .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_RULE_REGION");
+                        .HasConstraintName("AGS_FK_RULE_REGION");
 
                     b.Navigation("MetricType");
 
@@ -545,7 +545,7 @@ namespace AgroSmart.Api.Migrations
                         .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_DEVICE_REGION");
+                        .HasConstraintName("AGS_FK_DEVICE_REGION");
 
                     b.Navigation("Region");
                 });
@@ -557,14 +557,14 @@ namespace AgroSmart.Api.Migrations
                         .HasForeignKey("MetricTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MEAS_METRIC");
+                        .HasConstraintName("AGS_FK_MEAS_METRIC");
 
                     b.HasOne("AgroSmart.Api.Models.SensorReading", "SensorReading")
                         .WithMany("Measurements")
                         .HasForeignKey("SensorReadingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_MEAS_READING");
+                        .HasConstraintName("AGS_FK_MEAS_READING");
 
                     b.Navigation("MetricType");
 
@@ -578,7 +578,7 @@ namespace AgroSmart.Api.Migrations
                         .HasForeignKey("DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_READING_DEVICE");
+                        .HasConstraintName("AGS_FK_READING_DEVICE");
 
                     b.Navigation("Device");
                 });

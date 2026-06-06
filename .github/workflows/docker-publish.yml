@@ -16,6 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate Docker Hub secrets
+        run: |
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ] || [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "::error::Secrets DOCKERHUB_USERNAME e DOCKERHUB_TOKEN não configurados."
+            echo "Em https://github.com/${{ github.repository }}/settings/secrets/actions crie:"
+            echo "  - DOCKERHUB_USERNAME = seu usuário do Docker Hub"
+            echo "  - DOCKERHUB_TOKEN = token de acesso (https://hub.docker.com/settings/security)"
+            exit 1
+          fi
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:

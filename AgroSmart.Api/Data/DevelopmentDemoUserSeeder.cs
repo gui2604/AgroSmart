@@ -51,7 +51,8 @@ public static class DevelopmentDemoUserSeeder
     {
         var db = services.GetRequiredService<ApplicationDbContext>();
 
-        if (await db.Regions.AnyAsync())
+        // AnyAsync() gera SQL com literal FALSE no Oracle (ORA-00904); usar CountAsync.
+        if (await db.Regions.CountAsync() > 0)
             return; // demo data already present
 
         var fields = new[]

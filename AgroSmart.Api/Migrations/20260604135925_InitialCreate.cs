@@ -28,7 +28,7 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_METRIC_TYPE", x => x.Id);
+                    table.PrimaryKey("AGS_PK_METRIC", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -46,7 +46,7 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_REGION", x => x.Id);
+                    table.PrimaryKey("AGS_PK_REGION", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -62,7 +62,7 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_USER", x => x.Id);
+                    table.PrimaryKey("AGS_PK_USER", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -83,15 +83,15 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ALERT_RULE", x => x.Id);
+                    table.PrimaryKey("AGS_PK_ALERT_RULE", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RULE_METRIC",
+                        name: "AGS_FK_RULE_METRIC",
                         column: x => x.MetricTypeId,
                         principalTable: "AGS_METRIC_TYPES",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RULE_REGION",
+                        name: "AGS_FK_RULE_REGION",
                         column: x => x.RegionId,
                         principalTable: "AGS_REGIONS",
                         principalColumn: "Id",
@@ -115,9 +115,9 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DEVICE", x => x.Id);
+                    table.PrimaryKey("AGS_PK_DEVICE", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DEVICE_REGION",
+                        name: "AGS_FK_DEVICE_REGION",
                         column: x => x.RegionId,
                         principalTable: "AGS_REGIONS",
                         principalColumn: "Id",
@@ -137,9 +137,9 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_READING", x => x.Id);
+                    table.PrimaryKey("AGS_PK_READING", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_READING_DEVICE",
+                        name: "AGS_FK_READING_DEVICE",
                         column: x => x.DeviceId,
                         principalTable: "AGS_DEVICES",
                         principalColumn: "Id",
@@ -158,15 +158,15 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MEASUREMENT", x => x.Id);
+                    table.PrimaryKey("AGS_PK_MEASUREMENT", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_MEAS_METRIC",
+                        name: "AGS_FK_MEAS_METRIC",
                         column: x => x.MetricTypeId,
                         principalTable: "AGS_METRIC_TYPES",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_MEAS_READING",
+                        name: "AGS_FK_MEAS_READING",
                         column: x => x.SensorReadingId,
                         principalTable: "AGS_SENSOR_READINGS",
                         principalColumn: "Id",
@@ -195,39 +195,39 @@ namespace AgroSmart.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ALERT", x => x.Id);
+                    table.PrimaryKey("AGS_PK_ALERT", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ALERT_DEVICE",
+                        name: "AGS_FK_ALERT_DEVICE",
                         column: x => x.DeviceId,
                         principalTable: "AGS_DEVICES",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ALERT_MEAS",
+                        name: "AGS_FK_ALERT_MEAS",
                         column: x => x.MeasurementId,
                         principalTable: "AGS_MEASUREMENTS",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_ALERT_METRIC",
+                        name: "AGS_FK_ALERT_METRIC",
                         column: x => x.MetricTypeId,
                         principalTable: "AGS_METRIC_TYPES",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ALERT_REGION",
+                        name: "AGS_FK_ALERT_REGION",
                         column: x => x.RegionId,
                         principalTable: "AGS_REGIONS",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ALERT_RULE",
+                        name: "AGS_FK_ALERT_RULE",
                         column: x => x.AlertRuleId,
                         principalTable: "AGS_ALERT_RULES",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ALERT_USER",
+                        name: "AGS_FK_ALERT_USER",
                         column: x => x.AcknowledgedByUserId,
                         principalTable: "AGS_USERS",
                         principalColumn: "Id",
@@ -260,7 +260,7 @@ namespace AgroSmart.Api.Migrations
                 column: "RegionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ALERT_STATUS",
+                name: "AGS_IX_ALERT_STATUS",
                 table: "AGS_ALERTS",
                 column: "Status");
 
@@ -300,40 +300,40 @@ namespace AgroSmart.Api.Migrations
                 column: "RegionId");
 
             migrationBuilder.CreateIndex(
-                name: "UX_DEVICE_IDENT",
+                name: "AGS_UX_DEVICE_IDENT",
                 table: "AGS_DEVICES",
                 column: "Identifier",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_MEAS_METRIC",
+                name: "AGS_IX_MEAS_METRIC",
                 table: "AGS_MEASUREMENTS",
                 column: "MetricTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MEAS_READING",
+                name: "AGS_IX_MEAS_READING",
                 table: "AGS_MEASUREMENTS",
                 column: "SensorReadingId");
 
             migrationBuilder.CreateIndex(
-                name: "UX_METRIC_CODE",
+                name: "AGS_UX_METRIC_CODE",
                 table: "AGS_METRIC_TYPES",
                 column: "Code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "UX_REGION_CODE",
+                name: "AGS_UX_REGION_CODE",
                 table: "AGS_REGIONS",
                 column: "Code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_READING_DEVICE",
+                name: "AGS_IX_READING_DEVICE",
                 table: "AGS_SENSOR_READINGS",
                 column: "DeviceId");
 
             migrationBuilder.CreateIndex(
-                name: "UX_USER_EMAIL",
+                name: "AGS_UX_USER_EMAIL",
                 table: "AGS_USERS",
                 column: "Email",
                 unique: true);

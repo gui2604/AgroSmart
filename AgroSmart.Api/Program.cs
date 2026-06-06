@@ -138,17 +138,25 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-    await DevelopmentDemoUserSeeder.SeedAsync(scope.ServiceProvider);
-
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "AgroSmart API v1");
         c.RoutePrefix = "swagger";
     });
+
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+        await DevelopmentDatabaseInitializer.InitializeAsync(db, scope.ServiceProvider, logger);
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+        logger.LogError(ex, "Falha ao inicializar o banco Oracle. O Swagger abre, mas os endpoints podem falhar.");
+    }
 }
 
 app.UseHttpsRedirection();
