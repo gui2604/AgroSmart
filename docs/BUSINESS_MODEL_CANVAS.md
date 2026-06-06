@@ -4,9 +4,6 @@ Modelo de negócio da plataforma **AgroSmart**: monitoramento ambiental e agricu
 de precisão para o campo (lavouras, pastagens e estufas), transformando dados de
 sensores em decisões agronômicas e redução de perdas.
 
-> Requisito 3 da Fase 4. Abaixo o Canvas em formato de tabela e, na sequência,
-> o detalhamento de cada bloco.
-
 | **Parcerias-chave** | **Atividades-chave** | **Proposta de valor** | **Relacionamento** | **Segmentos de clientes** |
 |---|---|---|---|---|
 | Fabricantes de sensores/IoT (LoRa, NB-IoT)<br>Cooperativas agrícolas<br>Revendas de insumos<br>Provedores de nuvem<br>Universidades/Embrapa<br>Operadoras de conectividade rural | Desenvolvimento da plataforma e pipeline de dados em tempo real<br>Curadoria de regras agronômicas/alertas<br>Modelos de classificação/visão computacional<br>Suporte e onboarding<br>Segurança e LGPD | **Decisões agronômicas em tempo real**: alertas automáticos de risco (estresse hídrico, calor, pH do solo) que reduzem perdas e custos de insumos, aumentam produtividade e dão rastreabilidade — acessível via API e dashboards, com baixo custo de implantação. | Self-service (SaaS) + Swagger/API<br>Suporte técnico e agronômico<br>Sucesso do cliente nas cooperativas<br>Comunidade e treinamentos | **Médios e grandes produtores** (grãos, hortaliças, café)<br>**Cooperativas** e agroindústrias<br>**Agrônomos/consultores**<br>**Startups de AgTech** (via API)<br>**Produtores de estufa** |
